@@ -11,9 +11,9 @@ import (
 //####################################################################################################################//
 
 // MyAI run demo ai
-func MyAI() {
+func MyAI(host, port string) {
 	// connect to server
-	client := remote.NewTcpClient("localhost", "3333")
+	client := remote.NewTcpClient(host, port)
 
 	// get my player
 	me := client.MyName()

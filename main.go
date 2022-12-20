@@ -38,7 +38,7 @@ func main() {
 
 	// AI MODE
 	if *aiMode {
-		goai.MyAI() // blocking
+		goai.MyAI(*srvAddr, *srvPort) // blocking
 		os.Exit(0)
 	}
 
