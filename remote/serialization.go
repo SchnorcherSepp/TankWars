@@ -107,6 +107,7 @@ type JsonProjectile struct {
 	Parent    string       `json:"parent"`
 	Pos       JsonPosition `json:"pos"`
 	StartPos  JsonPosition `json:"startPos"`
+	EndPos    JsonPosition `json:"endPos"`
 	Angle     int          `json:"angle"`
 	Distance  int          `json:"distance"`
 	Speed     int          `json:"speed"`
@@ -125,6 +126,7 @@ func NewJsonProjectile(p *core.Projectile) JsonProjectile {
 		Parent:    "", // set later
 		Pos:       NewJsonPosition(p.Pos()),
 		StartPos:  NewJsonPosition(p.StartPos()),
+		EndPos:    NewJsonPosition(p.EndPos()),
 		Angle:     p.Angle(),
 		Distance:  p.Distance(),
 		Speed:     p.Speed(),
@@ -368,4 +370,72 @@ func (w *JsonWorld) Set(j string) {
 	if err := json.Unmarshal([]byte(j), &w); err != nil {
 		fmt.Printf("err: JsonWorld: %v\n", err)
 	}
+}
+
+//---------------- [8] World (reverse) -------------------------------------------------------------------------------//
+
+// CoreWorld build and returns a new core.World.
+func (w *JsonWorld) CoreWorld() *core.World {
+	world := new(core.World)
+
+	// tank id index
+	tankIndex := make(map[string]*core.Tank)
+
+	// tank list
+	tanks := make([]*core.Tank, len(w.Tanks))
+	for i, jt := range w.Tanks {
+		// tank
+		tank := new(core.Tank)
+		tankIndex[jt.ID] = tank
+
+		// macro
+		var mco func(t *core.Tank)
+		if jt.ActiveMacro {
+			mco = func(t *core.Tank) {}
+		}
+
+		// weapon
+		jw := jt.Weapon
+		weapon := new(core.Weapon)
+		weapon.TestInitialization(world, tank, jw.Typ, jw.Rng, jw.PrepTime, jw.ReloadTime, jw.ProjSpeed, jw.Damage, jw.AoeRadius, jw.ProjCollision, jw.AnyFireAngle, jw.LastMove, jw.LastFire)
+
+		// position
+		pos := core.Position{X: jt.Pos.X, Xf: jt.Pos.Xf, Y: jt.Pos.Y, Yf: jt.Pos.Yf}
+
+		// init & add tank
+		tank.TestInitialization(world, jt.ID, jt.Owner, weapon, jt.Health, jt.Armor, jt.Speed, pos, jt.Command, jt.Angle, jt.IsBlocked, jt.LastRotate, mco)
+		tanks[i] = tank
+	}
+
+	// projectile list
+	projectiles := make([]*core.Projectile, len(w.Projectiles))
+	for i, jp := range w.Projectiles {
+		// Projectile
+		p := new(core.Projectile)
+
+		// exploded
+		exploded := uint(0)
+		if jp.Exploded {
+			exploded = 1
+		}
+
+		// positions
+		cPos := core.Position{X: jp.Pos.X, Xf: jp.Pos.Xf, Y: jp.Pos.Y, Yf: jp.Pos.Yf}
+		sPos := core.Position{X: jp.StartPos.X, Xf: jp.StartPos.Xf, Y: jp.StartPos.Y, Yf: jp.StartPos.Yf}
+		ePos := core.Position{X: jp.EndPos.X, Xf: jp.EndPos.Xf, Y: jp.EndPos.Y, Yf: jp.EndPos.Yf}
+
+		// parent
+		parent, ok := tankIndex[jp.Parent]
+		if !ok {
+			println("warning: CoreWorld: tank id", jp.Parent, "not found")
+		}
+
+		// init & add tank
+		p.TestInitialization(world, parent, cPos, sPos, ePos, jp.Angle, jp.Distance, jp.Speed, jp.Damage, jp.AoeRadius, jp.Collision, exploded)
+		projectiles[i] = p
+	}
+
+	// init world and return
+	world.TestInitialization(w.XWidth, w.YHeight, w.Iteration, tanks, projectiles, w.Freeze, float64(w.CashRed), float64(w.CashBlue))
+	return world
 }

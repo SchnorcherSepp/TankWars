@@ -3,6 +3,8 @@ package remote
 import (
 	"fmt"
 	"github.com/SchnorcherSepp/TankWars/core"
+	"github.com/SchnorcherSepp/TankWars/gui/resources"
+	"reflect"
 	"regexp"
 	"testing"
 )
@@ -214,6 +216,66 @@ func TestJsonWorld(t *testing.T) {
 	NewJsonWorld(nil)
 	var nilObj *JsonWorld
 	nilObj.Get() // test nil
+}
+
+//---------------- World (reverse) -----------------------------------------------------------------------------------//
+
+func TestJsonWorld_CoreWorld(t *testing.T) {
+	resources.MuteSound = true
+
+	w := core.NewWorld(111, 222)
+
+	nt1, _ := core.NewTank(w, "owner 1", 22, 33, core.WeaponCannon)
+	nt1.SetPosition(core.NewPosition(234, 567), core.Northwest)
+	nt1.SetMacro(func(t *core.Tank) {})
+	w.AddTank(nt1)
+
+	nt2, _ := core.NewTank(w, "owner 1", 33, 22, core.WeaponArtillery)
+	nt2.SetPosition(core.NewPosition(567, 234), core.Southwest)
+	w.AddTank(nt2)
+
+	w.UpdateN(300)
+	nt1.Fire(0, 100)
+	nt2.Fire(0, 100)
+	w.UpdateN(17)
+
+	// convert
+	jw1 := NewJsonWorld(w)
+	jw2 := new(JsonWorld)
+	jw2.Set(jw1.Get())
+	w2 := jw2.CoreWorld()
+
+	// check macro
+	var activeMacro bool
+	for _, nt := range w2.Tanks() {
+		if nt.ActiveMacro() {
+			activeMacro = true
+			nt.Update() // call macro
+			nt.SetMacro(nil)
+		}
+	}
+	if !activeMacro {
+		t.Error("macro not set")
+	}
+	nt1.SetMacro(nil) // disable macro for next compare
+
+	// compare
+	if !reflect.DeepEqual(w, w2) || len(w.Projectiles()) < 2 || len(w.Tanks()) < 2 {
+		t.Error("wrong value")
+	}
+
+	// simulate ID NOT FOUND
+	nt2.Remove()
+
+	// convert
+	jw1 = NewJsonWorld(w)
+	jw2 = new(JsonWorld)
+	jw2.Set(jw1.Get())
+	w2 = jw2.CoreWorld()
+
+	if reflect.DeepEqual(w, w2) {
+		t.Error("wrong value")
+	}
 }
 
 //---------------- HELPER --------------------------------------------------------------------------------------------//
