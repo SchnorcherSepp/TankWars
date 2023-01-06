@@ -12,7 +12,7 @@ import (
 	"os"
 )
 
-const version = "1.0"
+const version = "1.0b"
 
 func main() {
 	mapName := flag.String("map", "field", "maps: 'field', 'fortress' or 'random'")
@@ -58,6 +58,8 @@ func main() {
 		maps.InitFortress(w)
 	case "random":
 		maps.InitRandomWorld(w, 1337, func(t *core.Tank) { macro.AttackMove(t) })
+	case "test":
+		maps.InitTest(w)
 	default:
 		log.Fatal("unknown map")
 	}
