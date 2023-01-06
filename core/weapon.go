@@ -62,7 +62,7 @@ func NewWeaponArtillery(world *World, parent *Tank, damage int) *Weapon {
 		prepTime:      8000 * GameSpeed / 1000, // ~ 8000 ms
 		reloadTime:    6000 * GameSpeed / 1000, // ~ 6000 ms
 		projSpeed:     300,
-		damage:        int(math.Round(float64(damage) * 0.9)), // correction factor
+		damage:        int(math.Round(float64(damage) * 0.6)), // correction factor
 		aoeRadius:     1.75 * BlockRadius,
 		projCollision: false,
 		anyFireAngle:  true,

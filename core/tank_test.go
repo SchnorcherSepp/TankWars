@@ -197,7 +197,7 @@ func TestTank_FireAt(t *testing.T) {
 		t.Error("other not alive")
 	}
 
-	for i := 0; i < 500; i++ {
+	for i := 0; i < 700; i++ {
 		tank.FireAt(NewPosition(177, 290))
 		w.Update()
 		if !other.Alive() {

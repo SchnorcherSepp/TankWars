@@ -144,7 +144,7 @@ The artillery has a very long range and area damage. It is ideal for breaking do
 | **preparation time**     | 240 ticks (~ 8000 ms)  |
 | **reload time**          | 180 ticks (~ 6000 ms)  |
 | **projectile speed**     | 300 (fast)             |
-| **damage**               | _baseDamage_ * **0.9** |
+| **damage**               | _baseDamage_ * **0.6** |
 | **AoE radius**           | 112 pxl                |
 | **projectile collision** | false                  |
 | **any fire angle**       | **true**               |
